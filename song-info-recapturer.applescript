@@ -3,8 +3,8 @@ use framework "Foundation"
 
 on run
 	tell application "iTunes"
-		-- set allSongs to every track in playlist "‹È–¼‚ğÄ\’z‚µ‚½‚¢ƒvƒŒƒCƒŠƒXƒg"
-		-- repeat with i from 1 to (count of allSongs) ` end repeat
+		-- set allSongs to every track in playlist "æ›²åã‚’å†æ§‹ç¯‰ã—ãŸã„ãƒ—ãƒ¬ã‚¤ãƒªã‚¹ãƒˆ"
+		-- repeat with i from 1 to (count of allSongs) ã€œ end repeat
 		-- set props to properties of item i of allSongs
 		
 		set props to properties of current track
@@ -14,32 +14,32 @@ on run
 		set shellScript to "curl " & quote & newLocation & quote
 		set curlResult to do shell script shellScript
 		
-		set trackNameMatch to regexMatch(curlResult, "€€€"trackName€€€":€€€"([^€€€"]*)€€€"") of me
-		set artistNameMatch to regexMatch(curlResult, "€€€"artistName€€€":€€€"([^€€€"]*)€€€"") of me
-		set collectionNameMatch to regexMatch(curlResult, "€€€"collectionName€€€":€€€"([^€€€"]*)€€€"") of me
+		set trackNameMatch to regexMatch(curlResult, "\\\"trackName\\\":\\\"([^\\\"]*)\\\"") of me
+		set artistNameMatch to regexMatch(curlResult, "\\\"artistName\\\":\\\"([^\\\"]*)\\\"") of me
+		set collectionNameMatch to regexMatch(curlResult, "\\\"collectionName\\\":\\\"([^\\\"]*)\\\"") of me
 		
 		try
 			set newTrackName to item 2 of trackNameMatch
 			set newArtistName to item 2 of artistNameMatch
 			set newAlbumName to item 2 of collectionNameMatch
 		on error
-			display dialog "‹È‚Ìî•ñ‚ªiTunes Storeã‚ÉŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½B" buttons {"OK"} default button 1
+			display dialog "æ›²ã®æƒ…å ±ãŒiTunes Storeä¸Šã«è¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚" buttons {"OK"} default button 1
 			return
 		end try
 		
 		if name of props = newTrackName and artist of props = newArtistName and album of props = newAlbumName then
-			display dialog "‚±‚Ì‹È‚Ìî•ñ‚Ì’u‚«Š·‚¦‚Í•K—v‚È‚¢‚æ‚¤‚Å‚·B" buttons {"OK"} default button 1
+			display dialog "ã“ã®æ›²ã®æƒ…å ±ã®ç½®ãæ›ãˆã¯å¿…è¦ãªã„ã‚ˆã†ã§ã™ã€‚" buttons {"OK"} default button 1
 		else
-			set dialogMessage to "ˆÈ‰º‚Ìî•ñ‚Å’u‚«Š·‚¦‚Ü‚·B" & return & "‚æ‚ë‚µ‚¯‚ê‚ÎuOKv‚ğƒNƒŠƒbƒN‚µ‚Ä‚­‚¾‚³‚¢B" & return & return & return Ê
-				& "yŒ»İz" & return & return Ê
-				& "ƒ^ƒCƒgƒ‹F " & return & name of props & return & return Ê
-				& "ƒA[ƒeƒBƒXƒgF " & return & artist of props & return & return Ê
-				& "ƒAƒ‹ƒoƒ€F " & return & album of props & return & return Ê
-				& return & " «««««««««« " & return & return & return Ê
-				& "y’u‚«Š·‚¦Œãz" & return & return Ê
-				& "ƒ^ƒCƒgƒ‹F " & return & newTrackName & return & return Ê
-				& "ƒA[ƒeƒBƒXƒgF " & return & newArtistName & return & return Ê
-				& "ƒAƒ‹ƒoƒ€F " & return & newAlbumName
+			set dialogMessage to "ä»¥ä¸‹ã®æƒ…å ±ã§ç½®ãæ›ãˆã¾ã™ã€‚" & return & "ã‚ˆã‚ã—ã‘ã‚Œã°ã€ŒOKã€ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ãã ã•ã„ã€‚" & return & return & return Â¬
+				& "ã€ç¾åœ¨ã€‘" & return & return Â¬
+				& "ã‚¿ã‚¤ãƒˆãƒ«ï¼š " & return & name of props & return & return Â¬
+				& "ã‚¢ãƒ¼ãƒ†ã‚£ã‚¹ãƒˆï¼š " & return & artist of props & return & return Â¬
+				& "ã‚¢ãƒ«ãƒãƒ ï¼š " & return & album of props & return & return Â¬
+				& return & " â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“ " & return & return & return Â¬
+				& "ã€ç½®ãæ›ãˆå¾Œã€‘" & return & return Â¬
+				& "ã‚¿ã‚¤ãƒˆãƒ«ï¼š " & return & newTrackName & return & return Â¬
+				& "ã‚¢ãƒ¼ãƒ†ã‚£ã‚¹ãƒˆï¼š " & return & newArtistName & return & return Â¬
+				& "ã‚¢ãƒ«ãƒãƒ ï¼š " & return & newAlbumName
 			display dialog dialogMessage
 			
 			set name of current track to newTrackName
