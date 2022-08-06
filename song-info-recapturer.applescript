@@ -15,23 +15,21 @@ on run
 		
 		set props to properties of current track
 		
-		set encodedName to urlEncode(name of props & " " & artist of props & " " & album of props) of me
+		set encodedName to encodeForUrl(name of props & " " & artist of props & " " & album of props) of me
 		set newLocation to "http://itunes.apple.com/search?term=" & encodedName & "&country=JP&lang=ja_jp"
 		set shellScript to "curl " & quote & newLocation & quote
 		set curlResult to do shell script shellScript
 		
-		set trackNameMatch to regexMatch(curlResult, "\\\"trackName\\\":\\\"([^\\\"]*)\\\"") of me
-		set artistNameMatch to regexMatch(curlResult, "\\\"artistName\\\":\\\"([^\\\"]*)\\\"") of me
-		set collectionNameMatch to regexMatch(curlResult, "\\\"collectionName\\\":\\\"([^\\\"]*)\\\"") of me
-		
-		try
-			set newTrackName to item 2 of trackNameMatch
-			set newArtistName to item 2 of artistNameMatch
-			set newAlbumName to item 2 of collectionNameMatch
-		on error
+		set parsedJSON to parseJSON(curlResult) of me
+		set resultCount to getValueForKeyPath(parsedJSON, "resultCount") of me
+		if resultCount = "0" then
 			display dialog "曲の情報がiTunes Store上に見つかりませんでした。" buttons {"OK"} default button 1
 			return
-		end try
+		end if
+		
+		set newTrackName to getValueForKeyPath(parsedJSON, "results.trackName") of me
+		set newArtistName to getValueForKeyPath(parsedJSON, "results.artistName") of me
+		set newAlbumName to getValueForKeyPath(parsedJSON, "results.collectionName") of me
 		
 		if name of props = newTrackName and artist of props = newArtistName and album of props = newAlbumName then
 			display dialog "この曲の情報の置き換えは必要ないようです。" buttons {"OK"} default button 1
@@ -55,22 +53,20 @@ on run
 	end tell
 end run
 
-on urlEncode(inData)
-	set scpt to "php -r 'echo rawurlencode(" & quote & inData & quote & ");'"
-	return (do shell script scpt) as string
-end urlEncode
+on encodeForUrl(source)
+	set sourceString to current application's NSString's stringWithString:source
+	set result to sourceString's stringByAddingPercentEscapesUsingEncoding:(current application's NSUTF8StringEncoding)
+	return result
+end encodeForUrl
 
-on regexMatch(sourceText as text, pattern as text)
-	set regularExpression to current application's NSRegularExpression's regularExpressionWithPattern:pattern options:0 |error|:(missing value)
-	set sourceString to current application's NSString's stringWithString:sourceText
-	set matches to regularExpression's matchesInString:sourceText options:0 range:{location:0, |length|:count sourceText}
-	
-	if (count matches) = 0 then return {}
-	
-	set match to matches's objectAtIndex:0
-	set matchResult to {}
-	repeat with i from 0 to (match's numberOfRanges as integer) - 1
-		set end of matchResult to (sourceString's substringWithRange:(match's rangeAtIndex:i)) as text
-	end repeat
-	return matchResult
-end regexMatch
+on parseJSON(source)
+	set sourceString to current application's NSString's stringWithString:source
+	set sourceData to sourceString's dataUsingEncoding:(current application's NSUTF8StringEncoding)
+	set result to current application's NSJSONSerialization's JSONObjectWithData:sourceData options:(current application's NSJSONReadingAllowFragments) |error|:0
+	return result
+end parseJSON
+
+on getValueForKeyPath(source, targetKeyPath)
+	set result to source's valueForKeyPath:targetKeyPath
+	return result as text
+end getValueForKeyPath
