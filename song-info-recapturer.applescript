@@ -34,7 +34,12 @@ on run
 		if name of props = newTrackName and artist of props = newArtistName and album of props = newAlbumName then
 			display dialog "この曲の情報の置き換えは必要ないようです。" buttons {"OK"} default button 1
 		else
-			set dialogMessage to "以下の情報で置き換えます。" & return & "よろしければ「OK」をクリックしてください。" & return & return & return ¬
+			if resultCount > 1 then
+				set multipleWarningMessage to return & return & "※結果が複数（" & resultCount & "件）見つかっています。異なる曲の内容が表示されていないか必ず確認してください。"
+			else
+				set multipleWarningMessage to ""
+			end if
+			set dialogMessage to "以下の情報で置き換えます。" & return & "よろしければ「OK」をクリックしてください。" & multipleWarningMessage & return & return & return ¬
 				& "【現在】" & return & return ¬
 				& "タイトル： " & return & name of props & return & return ¬
 				& "アーティスト： " & return & artist of props & return & return ¬
@@ -68,5 +73,9 @@ end parseJSON
 
 on getValueForKeyPath(source, targetKeyPath)
 	set result to source's valueForKeyPath:targetKeyPath
-	return result as text
+	if result's isKindOfClass:(current application's NSArray) then
+		return (result's objectAtIndex:0) as text
+	else
+		return result as text
+	end if
 end getValueForKeyPath
