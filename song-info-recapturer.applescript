@@ -4,16 +4,15 @@ use scripting additions
 use framework "Foundation"
 
 on run
-	if application "iTunes" is not running then
-		display dialog "iTunesが起動していません。" buttons {"OK"} default button 1
-		return
+	if application "Music" is not running then
+		display dialog "ミュージックアプリが起動していません。" & return & "使用するには、ミュージックアプリ上で情報を再取得したい曲を再生中にしてください。" buttons {"OK"} default button 1
 	end if
-	tell application "iTunes"
+	tell application "Music"
 		-- set allSongs to every track in playlist "曲名を再構築したいプレイリスト"
 		-- repeat with i from 1 to (count of allSongs) 〜 end repeat
 		-- set props to properties of item i of allSongs
 		
-		set props to properties of current track
+		set props to current track
 		
 		set encodedName to encodeForUrl(name of props & " " & artist of props & " " & album of props) of me
 		set newLocation to "http://itunes.apple.com/search?term=" & encodedName & "&country=JP&lang=ja_jp"
@@ -23,8 +22,24 @@ on run
 		set parsedJSON to parseJSON(curlResult) of me
 		set resultCount to getValueForKeyPath(parsedJSON, "resultCount") of me
 		if resultCount = "0" then
-			display dialog "曲の情報がiTunes Store上に見つかりませんでした。" buttons {"OK"} default button 1
-			return
+			display dialog "曲の情報がiTunes Store上に見つかりませんでした。" & "検索条件を曲名のみとして、再検索しますか？"
+			set researched to true
+		else
+			set researched to false
+		end if
+		
+		if researched = true then
+			set encodedName to encodeForUrl(name of props) of me
+			set newLocation to "http://itunes.apple.com/search?term=" & encodedName & "&country=JP&lang=ja_jp"
+			set shellScript to "curl " & quote & newLocation & quote
+			set curlResult to do shell script shellScript
+			
+			set parsedJSON to parseJSON(curlResult) of me
+			set resultCount to getValueForKeyPath(parsedJSON, "resultCount") of me
+			if resultCount = "0" then
+				display dialog "曲の情報がiTunes Store上に見つかりませんでした。"
+				return
+			end if
 		end if
 		
 		set newTrackName to getValueForKeyPath(parsedJSON, "results.trackName") of me
@@ -39,7 +54,7 @@ on run
 			else
 				set multipleWarningMessage to ""
 			end if
-			set dialogMessage to "以下の情報で置き換えます。" & return & "よろしければ「OK」をクリックしてください。" & multipleWarningMessage & return & return & return ¬
+			set dialogMessage to "以下の情報で置き換えます。" & return & "よろしければ「OK」をクリックしてください。" & return & return & "※やり直しはできませんので、必ず内容を目視確認してください。" & multipleWarningMessage & return & return & return ¬
 				& "【現在】" & return & return ¬
 				& "タイトル： " & return & name of props & return & return ¬
 				& "アーティスト： " & return & artist of props & return & return ¬
